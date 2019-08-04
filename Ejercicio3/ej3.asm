@@ -68,7 +68,7 @@ Isr						; Rutina de Interrupción
 						; Interrumpe cada 16384 uS. Faltan 3616 uS
 	bcf		INTCON, GIE
 	bcf		INTCON,	T0IF
-	clrf	OPTION_REG
+	clrf	OPTION_REG		;Hay que modificar el prescaler para el retardo?
 	call	retardo_faltante	;16384 uS + 3600 uS = 19984 uS
 	bcf		PORTA,2				;Toggle
 	movlw	b'00000101'
