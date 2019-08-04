@@ -38,50 +38,44 @@
 
 ;- Declaración de Variables ------------------------------------------
 	CBLOCK	0x0C
-	w_temp
-	status_temp
+	d1
+	d2
 	ENDC
-
-;- Macros ------------------------------------------------------------
-push	    MACRO
-	movwf	w_temp
-	swapf	STATUS,W
-	movwf   status_temp
-	ENDM
-pop	        MACRO
-	swapf	status_temp,W
-	movwf	STATUS
-	swapf	w_temp,F
-	swapf	w_temp,W
-	ENDM
 
 ;- Vectores ---------------------------------------------------------
 	ORG	    0x000       ; Vector de Reset
 	clrw
 	goto	Main		
 
-;- Servicio de Interrupción -----------------------------------------
 	ORG	    0x004       ; Vector de Interrupción
-Isr						; Rutina de Interrupción
-	push				; Guardo el contexto (Reg W y STATUS)
-; Aca escribir el Servicio de Interrupción
-	
-	pop					; Recupero el contexto (Reg W y STATUS)
-	retfie
 
 ;--------------------------------------------------------------------
 Main
 	bank1
 	clrf	TRISA
 	bank0
+Loop
+	bsf		PORTA,2
+	call	retardo
+	bcf		PORTA,2
+	goto	Loop
 
 ;- Subrutinas -------------------------------------------------------
 
 retardo
+			
+	movlw	0x0E
+	movwf	d1
+	movlw	0x28
+	movwf	d2
+retardo_0
+	decfsz	d1, f
+	goto	$+2
+	decfsz	d2, f
+	goto	retardo_0
+
+	goto	$+1
+	nop
 	return
-
-;- Librerías --------------------------------------------------------
-; Incluir las librerias usadas
-
-;--------------------------------------------------------------------
+	
 	END					; FIN del pgm

@@ -39,6 +39,8 @@
 	CBLOCK	0x0C
 	w_temp
 	status_temp
+	d1
+	d2
 	ENDC
 
 ;- Macros ------------------------------------------------------------
@@ -63,24 +65,48 @@ pop	        MACRO
 	ORG	    0x004       ; Vector de Interrupción
 Isr						; Rutina de Interrupción
 	push				; Guardo el contexto (Reg W y STATUS)
-; Aca escribir el Servicio de Interrupción
-	
-	pop					; Recupero el contexto (Reg W y STATUS)
+						; Interrumpe cada 16384 uS. Faltan 3616 uS
+	bcf		INTCON, GIE
+	bcf		INTCON,	T0IF
+	clrf	OPTION_REG
+	call	retardo_faltante	;16384 uS + 3600 uS = 19984 uS
+	bcf		PORTA,2				;Toggle
+	movlw	b'00000101'
+	movwf	OPTION_REG
+	pop
+	clrf	TMR0
 	retfie
+	
 
 ;--------------------------------------------------------------------
 Main
 	bank1
 	clrf	TRISA
+	movlw	b'10100000' ;Habilitar interrupcion de timer-overflow
+	movwf	INTCON
+	movlw	b'00000101' ;Prescaler 1:64
+	movwf	OPTION_REG
 	bank0
+	clrf	TMR0
+Loop
+	bsf		PORTA,2
+	goto	Loop
 
 ;- Subrutinas -------------------------------------------------------
 
-retardo
+retardo_faltante ;3600 ciclos -> 3600 uS
+			
+	movlw	0xCE
+	movwf	d1
+	movlw	0x03
+	movwf	d2
+retardo_faltante_0
+	decfsz	d1, f
+	goto	$+2
+	decfsz	d2, f
+	goto	retardo_faltante_0
+	goto	$+1
+	nop
 	return
 
-;- Librerías --------------------------------------------------------
-; Incluir las librerias usadas
-
-;--------------------------------------------------------------------
 	END					; FIN del pgm
