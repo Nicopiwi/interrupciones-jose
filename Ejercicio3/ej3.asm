@@ -1,16 +1,16 @@
-;--------------------------------------------------------------------
+ï»¿;--------------------------------------------------------------------
 ; Nombre del archivo: ej3.asm
 ;--------------------------------------------------------------------
-; Descripción: Realizar un toggle en el pin RA2 cada 20 mS (utilizando 
-; interrupción de TMR0).
+; DescripciÃ³n: Realizar un toggle en el pin RA2 cada 20 mS (utilizando 
+; interrupciÃ³n de TMR0).
 ;--------------------------------------------------------------------
-; Versión ensamblador: MPASM™ Assembler v5.42
+; VersiÃ³n ensamblador:Â MPASMâ„¢ Assembler v5.42
 ; p16F84.inc
 ;--------------------------------------------------------------------
-; Descripción del Hardware:
+; DescripciÃ³n del Hardware:
 ;
 ;                     1 --------------16
-;                      |RA2  °|_|  RA1|
+;                      |RA2  Â°|_|  RA1|
 ;                      |RA3        RA0| 
 ;                      |RA4/T0CKI OSC2| XTAL
 ;          R10 K a Vdd |/MCLR     OSC1| XTAL
@@ -23,7 +23,7 @@
 ;
 ; Frecuencia del oscilador externo: 4MHz (XT)
 ;--------------------------------------------------------------------
-; Autores: Nicolás Rozenberg & Camilo Elman       
+; Autores: NicolÃ¡s Rozenberg & Camilo Elman       
 ;--------------------------------------------------------------------
 	LIST	p=PIC16F84A
 	INCLUDE	<p16f84a.inc>
@@ -35,7 +35,7 @@
 #DEFINE	bank1	bsf	STATUS,RP0		; Cambio al banco 1	
 #DEFINE pin1		RA2
 
-;- Declaración de Variables ------------------------------------------
+;- DeclaraciÃ³n de Variables ------------------------------------------
 	CBLOCK	0x0C
 	w_temp
 	status_temp
@@ -61,18 +61,18 @@ pop	        MACRO
 	clrw
 	goto	Main		
 
-;- Servicio de Interrupción -----------------------------------------
-	ORG	    0x004       ; Vector de Interrupción
-Isr						; Rutina de Interrupción
+;- Servicio de InterrupciÃ³n -----------------------------------------
+	ORG	    0x004       ; Vector de InterrupciÃ³n
+Isr						; Rutina de InterrupciÃ³n
 	push				; Guardo el contexto (Reg W y STATUS)
 						; Interrumpe cada 16384 uS. Faltan 3616 uS
 	bcf		INTCON, GIE
 	bcf		INTCON,	T0IF
 	clrf	OPTION_REG		;Hay que modificar el prescaler para el retardo?
 	call	retardo_faltante	;16384 uS + 3600 uS = 19984 uS
-	bcf		PORTA,2				;Toggle
+	bcf	PORTA,2			;Toggle
 	movlw	b'00000101'
-	movwf	OPTION_REG
+	movwf	OPTION_REG	
 	pop
 	clrf	TMR0
 	retfie
