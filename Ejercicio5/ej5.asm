@@ -69,7 +69,6 @@ Isr						; Rutina de Interrupción
 	decfsz	counter,F
 	goto	Salir
 ;- Toggle --------------
-
 	movlw	1<<2
 	xorwf	PORTA
 	movlw	.3			
@@ -83,6 +82,7 @@ Main
 	bank1
 	movlw	1<<0
 	movwf	TRISB
+	bcf		TRISA,2
 	movlw	b'10010000'
 	movwf	INTCON		; Interrupcion TMR0
 	movlw   b'00110000' ; Counter Mode
