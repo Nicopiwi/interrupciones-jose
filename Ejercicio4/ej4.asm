@@ -66,14 +66,12 @@ Isr						; Rutina de Interrupción
 	push				; Guardo el contexto (Reg W y STATUS)
 	btfss	INTCON,T0IF	
 	goto	Salir
-	bcf		PORTA,RA2
 	bcf		INTCON,T0IF
-	movlw	.247		; 255-8
+	movlw	.248		; 256-8
 	movwf	TMR0
 ;- Toggle --------------
-	movlw	1<<RA2
+	movlw	1<<2
 	xorwf	PORTA
-	
 Salir	
 	pop					; Recupero el contexto (Reg W y STATUS)
 	retfie
@@ -81,22 +79,17 @@ Salir
 ;--------------------------------------------------------------------
 Main
 	bank1
-	movlw	1<<RA4
+	movlw	1<<4
 	movwf	TRISA
 	movlw	b'10100000'
 	movwf	INTCON		; Interrupcion TMR0
-	
 	movlw   b'00110000' ; Counter Mode
 						; Flanco Descendente
 	movwf	OPTION_REG
 	bank0
-	movlw	.247		; 255-8
+	movlw	.248		; 256-8
 	movwf	TMR0
 Loop
 	goto	Loop
-;- Subrutinas -------------------------------------------------------
-; Aqui escribir las subrutinas
-
-
-;--------------------------------------------------------------------
+	
 	END				
