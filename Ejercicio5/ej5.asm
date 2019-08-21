@@ -38,7 +38,6 @@
 	CBLOCK	0x0C
 	w_temp
 	status_temp
-	counter
 	ENDC
 
 ;- Macros ------------------------------------------------------------
@@ -66,13 +65,13 @@ Isr						; Rutina de Interrupción
 	btfss	INTCON,INTF	
 	goto	Salir
 	bcf		INTCON,INTF
-	decfsz	counter,F
+	decfsz	TMR0,F
 	goto	Salir
 ;- Toggle --------------
 	movlw	1<<2
 	xorwf	PORTA
 	movlw	.3			
-	movwf	counter
+	movwf	TMR0
 Salir	
 	pop					; Recupero el contexto (Reg W y STATUS)
 	retfie
@@ -84,13 +83,13 @@ Main
 	movwf	TRISB
 	bcf		TRISA,2
 	movlw	b'10010000'
-	movwf	INTCON		; Interrupcion TMR0
+	movwf	INTCON		; Interrupcion RB0
 	movlw   b'00110000' ; Counter Mode
 						; Flanco Descendente
 	movwf	OPTION_REG
 	bank0
 	movlw	.3		
-	movwf	counter
+	movwf	TMR0
 Loop
 	goto	Loop
 	
