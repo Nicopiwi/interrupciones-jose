@@ -5,7 +5,7 @@
 ; interrupciones). (Un toggle es invertir el estado de ese bit o pín).
 ; 
 ;--------------------------------------------------------------------
-; Versión ensamblador: MPASM™ Assembler v5.42
+; Versión ensamblador: MPASM™ Assembler v5.42
 ; p16F84.inc
 ;--------------------------------------------------------------------
 ; Descripción del Hardware:
@@ -34,14 +34,6 @@
 ;- Definiciones y Equivalencias --------------------------------------
 #DEFINE	bank0	bcf	STATUS,RP0		; Cambio al banco 0
 #DEFINE	bank1	bsf	STATUS,RP0		; Cambio al banco 1	
-#DEFINE pin1		RA2
-
-;- Declaración de Variables ------------------------------------------
-	CBLOCK	0x0C
-	d1
-	d2
-	ENDC
-
 ;- Vectores ---------------------------------------------------------
 	ORG	    0x000       ; Vector de Reset
 	clrw
@@ -53,29 +45,28 @@
 Main
 	bank1
 	clrf	TRISA
+	clrf	TRISB
 	bank0
+	bsf		PORTA,RA2
+	movlw	b'00000111' ; Frecuencia se divide en 256
+	movwf	OPTION_REG
 Loop
-	bsf		PORTA,2
-	call	retardo
-	bcf		PORTA,2
+	call	_50mS
+	movlw	1<<RA2
+	xorwf	PORTA
 	goto	Loop
+	
+;- Subrutinas -----------------------------------------------------------------
 
-;- Subrutinas -------------------------------------------------------
-
-retardo
-			
-	movlw	0x0E
-	movwf	d1
-	movlw	0x28
-	movwf	d2
-retardo_0
-	decfsz	d1, f
-	goto	$+2
-	decfsz	d2, f
-	goto	retardo_0
-
-	goto	$+1
-	nop
-	return
+_50mS
+	movlw	.61			; 256-195. 195 se consigue mediante
+						; 50000 uS / 256 uS, siendo 256 uS el
+						; período del TMR0
+	movwf	TMR0 
+Ask
+	btfss   INTCON, T0IF 		; wait for flag set
+ 	goto 	Ask
+ 	bcf 	INTCON, T0IF
+ 	return
 	
 	END					; FIN del pgm
