@@ -1,7 +1,7 @@
 ;--------------------------------------------------------------------
 ; Nombre del archivo: ej2.asm
 ;--------------------------------------------------------------------
-; Descripción:Realizar un toggle en el pin RA2 cada 10 flancos descendentes 
+; Descripción: Realizar un toggle en el pin RA2 cada 10 flancos descendentes 
 ; en el pin RA4 (sin habilitar interrupciones).
 ; 
 ;--------------------------------------------------------------------
@@ -23,9 +23,9 @@
 ;                      |RB3        RB4| -> 
 ;                     9 --------------10
 ;
-; Frecuencia del oscilador externo: XXMHz (XT)
+; Frecuencia del oscilador externo: 4MHz (XT)
 ;--------------------------------------------------------------------
-; Autores: XXXXXXXXX       Fecha: XX/XX/XX               Versión:X.X
+; Autores: Nicolás Rozenberg & Camilo Elman
 ;--------------------------------------------------------------------
 LIST	p=PIC16F84A
 INCLUDE	<p16f84a.inc>
@@ -36,65 +36,33 @@ ERRORLEVEL	-302
 #DEFINE	bank0	bcf	STATUS,RP0	; Cambio al banco 0
 #DEFINE	bank1	bsf	STATUS,RP0	; Cambio al banco 1	
 
-;- Declaración de Variables ------------------------------------------
-CBLOCK	0x0C
-w_temp
-status_temp
-ENDC
-
-;- Macros ------------------------------------------------------------
-push	   MACRO
-movwf	w_temp
-swapf	STATUS,W
-movwf   status_temp
-ENDM
-pop	       MACRO
-swapf	status_temp,W
-movwf	STATUS
-swapf	w_temp,F
-swapf	w_temp,W
-ENDM
 
 ;- Vectores ---------------------------------------------------------
-ORG	   0x000       ; Vector de Reset
-clrw
-goto	Main	
-
-;- Servicio de Interrupción -----------------------------------------
-ORG	   0x004       ; Vector de Interrupción
-Isr	; Rutina de Interrupción
-push	; Guardo el contexto (Reg W y STATUS)
-; Aca escribir el Servicio de Interrupción
-pop	; Recupero el contexto (Reg W y STATUS)
-retfie
-
+	ORG	   0x000       ; Vector de Reset
+	clrw
+	goto	Main	
 ;--------------------------------------------------------------------
 Main
-; Aqui escribir el código 
-bank1
-movlw	b'10000'
-movwf	TRISA
-movlw	b'00110000'
-movwf	OPTION_REG
-bank0
+
+	bank1
+	movlw	1<<4
+	movwf	TRISA
+	movlw	b'01100000'
+	movwf	OPTION_REG
+	bank0
 
 Loop
-call	Rutina
-movlw	b'00100'
-xorwf	PORTA
-goto	Loop
+	call	Rutina_check
+	movlw	1<<2
+	xorwf	PORTA
+	goto	Loop
 ;- Subrutinas -------------------------------------------------------
-Rutina
-movlw	.251
-movwf	TMR0
-btfss	INTCON, T0IF
-goto	$-1
-bcf	INTCON,T0IF
-return
-; Aqui escribir las subrutinas
+Rutina_check
+	movlw	.251			;256-(10/2)
+	movwf	TMR0
+	btfss	INTCON, T0IF
+	goto	$-1
+	bcf	INTCON,T0IF
+	return
 
-;- Librerías --------------------------------------------------------
-; Incluir las librerias usadas
-
-;--------------------------------------------------------------------
 END	; FIN del pgm

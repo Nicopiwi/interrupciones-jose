@@ -8,7 +8,6 @@
 ; la interrupción del TMR0.
 ;--------------------------------------------------------------------
 ; Versión ensamblador: MPASM™ Assembler v5.42
-; Archivos requeridos:
 ; p16F84.inc
 ;--------------------------------------------------------------------
 ; Descripción del Hardware:
@@ -40,7 +39,7 @@
 	CBLOCK	0x0C
 	w_temp
 	status_temp
-	counter
+	counter1
 	ENDC
 
 ;- Macros ------------------------------------------------------------
@@ -58,7 +57,7 @@ pop	        MACRO
 
 ;- Vectores ---------------------------------------------------------
 	ORG	    0x000       ; Vector de Reset
-	clrw
+	clrf	W
 	goto	Main		
 
 ;- Servicio de Interrupción -----------------------------------------
@@ -68,13 +67,18 @@ Isr						; Rutina de Interrupción
 	btfss	INTCON,RBIF	
 	goto	_tmr0_Interruption
 _RBI_Interruption	
+	bcf		INTCON,RBIF
 	bsf		INTCON,T0IE
+	bsf		INTCON,T0IF ; Para que TMR0 interrumpa, luego de RB
 _tmr0_Interruption
 	btfss	INTCON,T0IF
 	goto	Salir
-	bsf		PORTA,2
-	; PONER TITILACION ACA
+	bcf		INTCON,T0IF
+	btfss	PORTA,3
+	goto	_Off400mS
+	goto	_On100mS
 ;- Toggle -----------------------------------------------------------
+Toggle
 	movlw	1<<3
 	xorwf	PORTB
 Salir	
@@ -89,12 +93,52 @@ Main
 	clrf	TRISA
 	movlw	b'10001000'
 	movwf	INTCON		; Interrupcion RBI
-	movlw   b'00110000' ; Counter Mode
+	movlw   b'00000111' ; Counter Mode
 						; Flanco Descendente
+						; Periodo de 256 uS
 	movwf	OPTION_REG
 	bank0
 	
 Loop
 	goto	Loop
-	
+
+
+;- Etiquetas --------------------------------------------
+
+_On100mS	;100000uS/256uS = 390 
+	clrf	TMR0
+ask
+	btfss	INTCON,T0IF
+	goto	ask
+	bcf		INTCON,T0IF
+	movlw	.122	;256-(390-256)
+	movwf	TMR0
+	btfss	INTCON,T0IF
+	goto	$-1	
+	bcf		INTCON,T0IF
+	goto	Toggle
+_Off400mS ;100000uS/256uS = 1562
+	movlw	.6	;Debo repetir el mismo codigo
+				;6 veces. Esto se debe a que 256
+				;entra 6 veces en 1562. En la ultima
+				;el timer debe contar 26 para desbordar
+	movwf	counter1
+_400mSLoop
+	decfsz	counter1
+	goto	_Code
+	goto	_Last
+_Code
+	clrf	TMR0
+	btfss	INTCON,T0IF
+	goto	$-1	
+	bcf		INTCON,T0IF
+	goto	_400mSLoop
+_Last	
+	movlw	.230 	;256-26
+	btfss	INTCON,T0IF
+	goto	$-1	
+	bcf		INTCON,T0IF
+	goto	Toggle
+
+
 	END				

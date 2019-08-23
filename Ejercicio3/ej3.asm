@@ -55,22 +55,22 @@ pop	MACRO
 ENDM
 
 ;- Variables -----------------------------------------------------
-CBLOCK	0x0C
-w_temp	; w_temp en la pos 0x0C
-status_temp	; starus_temp en la pos 0x0D
-ENDC
+	CBLOCK	0x0C
+	w_temp	; w_temp en la pos 0x0C
+	status_temp	; starus_temp en la pos 0x0D
+	ENDC
 
 ;- Vectores ------------------------------------------------------        
         ORG        	0x000
-clrw
-clrf	PORTA
-clrf	PORTB	
+	clrw
+	clrf	PORTA
+	clrf	PORTB	
         goto       Main
 
 ;-----------------------------------------------------------------        
         ORG        	0x004
 Isr
-push	; guardamos W y STATUS
+	push	; guardamos W y STATUS
 ; Pregunto de donde viene la interrupción:
 	btfss	INTCON,T0IF	
 	goto	Salir_Isr

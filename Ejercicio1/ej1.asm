@@ -39,20 +39,19 @@
 	clrw
 	goto	Main		
 
-	ORG	    0x004       ; Vector de Interrupción
-
 ;--------------------------------------------------------------------
 Main
 	bank1
 	clrf	TRISA
 	clrf	TRISB
-	bank0
-	bsf		PORTA,RA2
 	movlw	b'00000111' ; Frecuencia se divide en 256
 	movwf	OPTION_REG
+	
+	bank0
+	
 Loop
 	call	_50mS
-	movlw	1<<RA2
+	movlw	1<<2
 	xorwf	PORTA
 	goto	Loop
 	
@@ -66,7 +65,7 @@ _50mS
 Ask
 	btfss   INTCON, T0IF 		; wait for flag set
  	goto 	Ask
- 	bcf 	INTCON, T0IF
+ 	bcf		INTCON, T0IF
  	return
 	
 	END					; FIN del pgm

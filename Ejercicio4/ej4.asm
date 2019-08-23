@@ -67,7 +67,7 @@ Isr						; Rutina de Interrupción
 	btfss	INTCON,T0IF	
 	goto	Salir
 	bcf		INTCON,T0IF
-	movlw	.248		; 256-8
+	movlw	.252		; 256-(8/2)
 	movwf	TMR0
 ;- Toggle --------------
 	movlw	1<<2
@@ -87,7 +87,7 @@ Main
 						; Flanco Descendente
 	movwf	OPTION_REG
 	bank0
-	movlw	.248		; 256-8
+	movlw	.252		; 256-(8/2)
 	movwf	TMR0
 Loop
 	goto	Loop
