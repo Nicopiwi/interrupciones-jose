@@ -1,0 +1,216 @@
+MPASM 03.20.07 Released                               EJ4.ASM   8-23-2019  1:21:04         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ;--------------------------------------------------------------------
+                      00002 ; Nombre del archivo: ej4.asm
+                      00003 ;--------------------------------------------------------------------
+                      00004 ; Descripción: Realizar un toggle en el pin RA2 cada 8 flancos descendentes 
+                      00005 ; en el pin RA4 (utilizando interrupción de TMR0).
+                      00006 ; 
+                      00007 ;--------------------------------------------------------------------
+                      00008 ; Versión ensamblador: MPASM™ Assembler v5.42
+                      00009 ; Archivos requeridos:
+                      00010 ; p16F84.inc
+                      00011 ;--------------------------------------------------------------------
+                      00012 ; Descripción del Hardware:
+                      00013 ;
+                      00014 ;                     1 --------------16
+                      00015 ;                      |RA2  °|_|  RA1|
+                      00016 ;                      |RA3        RA0| 
+                      00017 ;                      |RA4/T0CKI OSC2| XTAL
+                      00018 ;          R10 K a Vdd |/MCLR     OSC1| XTAL
+                      00019 ;                  GND |VSS        VDD| 5V 
+                      00020 ;                      |RB0/INT    RB7|
+                      00021 ;                      |RB1        RB6|
+                      00022 ;                      |RB2        RB5|
+                      00023 ;                      |RB3        RB4| -> 
+                      00024 ;                     9 --------------10
+                      00025 ;
+                      00026 ; Frecuencia del oscilador externo: XXMHz (XT)
+                      00027 ;--------------------------------------------------------------------
+                      00028 ; Autores: XXXXXXXXX       Fecha: XX/XX/XX               Versión:X.X
+                      00029 ;--------------------------------------------------------------------
+                      00030         LIST    p=PIC16F84A
+                      00031         INCLUDE <p16f84a.inc>
+                      00001         LIST
+                      00002 ; P16F84A.INC  Standard Header File, Version 2.00    Microchip Technology, Inc.
+                      00134         LIST
+2007   3FF1           00032         __CONFIG _WDT_OFF & _PWRTE_ON & _CP_OFF & _XT_OSC
+                      00033         ERRORLEVEL      -302
+                      00034 
+                      00035 ;- Definiciones y Equivalencias --------------------------------------
+                      00036 #DEFINE bank0   bcf     STATUS,RP0              ; Cambio al banco 0
+                      00037 #DEFINE bank1   bsf     STATUS,RP0              ; Cambio al banco 1     
+                      00038 
+                      00039 ;- Declaración de Variables ------------------------------------------
+                      00040         CBLOCK  0x0C
+  0000000C            00041         w_temp
+  0000000D            00042         status_temp
+                      00043         ENDC
+                      00044 
+                      00045 ;- Macros ------------------------------------------------------------
+                      00046 push        MACRO
+                      00047         movwf   w_temp
+                      00048         swapf   STATUS,W
+                      00049         movwf   status_temp
+                      00050         ENDM
+MPASM 03.20.07 Released                               EJ4.ASM   8-23-2019  1:21:04         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00051 pop             MACRO
+                      00052         swapf   status_temp,W
+                      00053         movwf   STATUS
+                      00054         swapf   w_temp,F
+                      00055         swapf   w_temp,W
+                      00056         ENDM
+                      00057 
+                      00058 ;- Vectores ---------------------------------------------------------
+0000                  00059         ORG         0x000       ; Vector de Reset
+0000   0103           00060         clrw
+0001   2813           00061         goto    Main            
+                      00062 
+                      00063 ;- Servicio de Interrupción -----------------------------------------
+0004                  00064         ORG         0x004       ; Vector de Interrupción
+0004                  00065 Isr                                             ; Rutina de Interrupción
+                      00066         push                            ; Guardo el contexto (Reg W y STATUS)
+0004   008C               M         movwf   w_temp
+0005   0E03               M         swapf   STATUS,W
+0006   008D               M         movwf   status_temp
+0007   1D0B           00067         btfss   INTCON,T0IF     
+0008   280E           00068         goto    Salir
+0009   110B           00069         bcf             INTCON,T0IF
+000A   30FC           00070         movlw   .252            ; 256-(8/2)
+000B   0081           00071         movwf   TMR0
+                      00072 ;- Toggle --------------
+000C   3004           00073         movlw   1<<2
+Message[305]: Using default destination of 1 (file).
+000D   0685           00074         xorwf   PORTA
+000E                  00075 Salir   
+                      00076         pop                                     ; Recupero el contexto (Reg W y STATUS)
+000E   0E0D               M         swapf   status_temp,W
+000F   0083               M         movwf   STATUS
+0010   0E8C               M         swapf   w_temp,F
+0011   0E0C               M         swapf   w_temp,W
+0012   0009           00077         retfie
+                      00078 
+                      00079 ;--------------------------------------------------------------------
+0013                  00080 Main
+0013   1683           00081         bank1
+0014   3010           00082         movlw   1<<4
+0015   0085           00083         movwf   TRISA
+0016   30A0           00084         movlw   b'10100000'
+0017   008B           00085         movwf   INTCON          ; Interrupcion TMR0
+0018   3030           00086         movlw   b'00110000' ; Counter Mode
+                      00087                                                 ; Flanco Descendente
+0019   0081           00088         movwf   OPTION_REG
+001A   1283           00089         bank0
+001B   30FC           00090         movlw   .252            ; 256-(8/2)
+001C   0081           00091         movwf   TMR0
+001D                  00092 Loop
+001D   281D           00093         goto    Loop
+                      00094         
+                      00095         END                             
+MPASM 03.20.07 Released                               EJ4.ASM   8-23-2019  1:21:04         PAGE  3
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+C                                 00000000
+DC                                00000001
+EEADR                             00000009
+EECON1                            00000088
+EECON2                            00000089
+EEDATA                            00000008
+EEIE                              00000006
+EEIF                              00000004
+F                                 00000001
+FSR                               00000004
+GIE                               00000007
+INDF                              00000000
+INTCON                            0000000B
+INTE                              00000004
+INTEDG                            00000006
+INTF                              00000001
+IRP                               00000007
+Isr                               00000004
+Loop                              0000001D
+Main                              00000013
+NOT_PD                            00000003
+NOT_RBPU                          00000007
+NOT_TO                            00000004
+OPTION_REG                        00000081
+PCL                               00000002
+PCLATH                            0000000A
+PORTA                             00000005
+PORTB                             00000006
+PS0                               00000000
+PS1                               00000001
+PS2                               00000002
+PSA                               00000003
+RBIE                              00000003
+RBIF                              00000000
+RD                                00000000
+RP0                               00000005
+RP1                               00000006
+STATUS                            00000003
+Salir                             0000000E
+T0CS                              00000005
+T0IE                              00000005
+T0IF                              00000002
+T0SE                              00000004
+TMR0                              00000001
+TRISA                             00000085
+TRISB                             00000086
+W                                 00000000
+WR                                00000001
+WREN                              00000002
+WRERR                             00000003
+Z                                 00000002
+_CP_OFF                           00003FFF
+_CP_ON                            0000000F
+MPASM 03.20.07 Released                               EJ4.ASM   8-23-2019  1:21:04         PAGE  4
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_HS_OSC                           00003FFE
+_LP_OSC                           00003FFC
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FF7
+_RC_OSC                           00003FFF
+_WDT_OFF                          00003FFB
+_WDT_ON                           00003FFF
+_XT_OSC                           00003FFD
+__16F84A                          00000001
+bank0                             bcf     STATUS,RP0
+bank1                             bsf     STATUS,RP0
+pop                               
+push                              
+status_temp                       0000000D
+w_temp                            0000000C
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+0000 : XX--XXXXXXXXXXXX XXXXXXXXXXXXXX-- ---------------- ----------------
+2000 : -------X-------- ---------------- ---------------- ----------------
+
+All other memory blocks unused.
+
+Program Memory Words Used:    28
+Program Memory Words Free:   996
+
+
+Errors   :     0
+Warnings :     0 reported,     0 suppressed
+Messages :     1 reported,     2 suppressed
+
+

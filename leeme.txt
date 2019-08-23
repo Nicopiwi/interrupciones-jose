@@ -1,0 +1,7 @@
+Aclaraciones
+
+En el diseño de los ejercicios 2, 4 y 5 el componente que oscila la corriente es el logicstate, por lo tanto:
+
+-En el ejercicio 2 hay que presionarlo 20 veces para conseguir 10 flancos descendentes.
+-En el ejercicio 4 hay que presionarlo 16 veces para conseguir 8 flancos descendentes.
+-En el ejercicio 5 hay que presionarlo 6 veces para conseguir 3 flancos descendentes.
